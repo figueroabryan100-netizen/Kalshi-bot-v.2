@@ -57,7 +57,7 @@ jobs:
         # your codebase is analyzed, see https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/codeql-code-scanning-for-compiled-languages
     steps:
     - name: Checkout repository
-    - name: Setup Node.js 24
+- name: Setup Node.js 24
   uses: actions/setup-node@v4
   with:
     node-version: '24'
