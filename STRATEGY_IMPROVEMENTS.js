@@ -14,6 +14,17 @@
 // ============================================================================
 
 // ============================================================================
+// HELPER CONSTANTS AND UTILITIES
+// ============================================================================
+
+const VOLUME_SCALER_MIN = 0.5;
+const VOLUME_SCALER_MAX = 1.5;
+const DEFAULT_MIN_EDGE = 0.06;
+const CATEGORY_WIN_RATE_HARD_VETO = 0.25;
+const CATEGORY_NET_LOSS_HARD_VETO = -2.0;
+const BAYESIAN_CONFIDENCE_THRESHOLD = 8;
+
+// ============================================================================
 // PRIORITY 1: DYNAMIC UNDERDOG SIZING — Replaces fixed $1.50
 // ============================================================================
 // 
@@ -29,7 +40,17 @@
 //   UNDER_VOLUME_THRESHOLD=200
 //   UNDER_EDGE_MULTIPLIER=8   (controls stake scaling with edge)
 
-function calculateUnderdog Stake(edge, volume, minEdge = 0.06) {
+function calculateUnderdogStake(edge, volume, minEdge = 0.06) {
+  // Input validation
+  if (typeof edge !== 'number' || edge < 0) {
+    console.warn('Invalid edge value:', edge);
+    return parseFloat(process.env.UNDER_STAKE || '1.50');
+  }
+  if (typeof volume !== 'number' || volume < 0) {
+    console.warn('Invalid volume value:', volume);
+    volume = 0;
+  }
+
   // Base: minimum stake
   const stakeMin = parseFloat(process.env.UNDER_STAKE_MIN || '0.75');
   const stakeMax = parseFloat(process.env.UNDER_STAKE_MAX || '2.50');
@@ -40,7 +61,7 @@ function calculateUnderdog Stake(edge, volume, minEdge = 0.06) {
   const edgeAboveMin = Math.max(0, edge - minEdge);
   
   // Volume scaler: 0% volume = 0.5x, volumeThresh = 1.0x, 2x volumeThresh = 1.5x
-  const volumeScaler = Math.min(1.5, 0.5 + (volume || 0) / volumeThresh);
+  const volumeScaler = Math.min(VOLUME_SCALER_MAX, VOLUME_SCALER_MIN + (volume || 0) / volumeThresh);
   
   // Calculate stake: base + edge-scaled component
   const baseStake = stakeMin;
@@ -101,9 +122,11 @@ function hasPatternMemory(asset, side, features, minSamples = 1) {
   }
   
   // Optional: also check if pattern is winning
-  const winRate = pattern.wins / pattern.trades;
-  if (winRate < 0.20) {
-    return false;  // Pattern is a loser, skip
+  if (pattern.trades > 0) {
+    const winRate = pattern.wins / pattern.trades;
+    if (winRate < 0.20) {
+      return false;  // Pattern is a loser, skip
+    }
   }
   
   return true;
@@ -163,13 +186,15 @@ function autoHitCycleImproved(markets) {
 
 function reviewCategoryMemoryImproved(category, features, notes, prob) {
   const cs = categoryStats(category, 30);  // 30-day rolling stats
+  const minSamplesToTrust = parseInt(process.env.MIN_SAMPLES_TO_TRUST || '8', 10);
   
-  if (!cs || cs.n < parseInt(process.env.MIN_SAMPLES_TO_TRUST || '8', 10)) {
+  if (!cs || cs.n < minSamplesToTrust) {
     return { prob, notes };  // Not enough data, don't adjust
   }
   
   // HARD VETO: Catastrophic category
-  if (cs.winRate < 0.25 && cs.net < -2.0 && cs.n >= 15) {
+  // At 25% win rate, -2.0 net, and 15+ trades: category is broken
+  if (cs.winRate < CATEGORY_WIN_RATE_HARD_VETO && cs.net < CATEGORY_NET_LOSS_HARD_VETO && cs.n >= 15) {
     return {
       prob,
       notes,
@@ -178,10 +203,9 @@ function reviewCategoryMemoryImproved(category, features, notes, prob) {
   }
   
   // SOFT PENALTY: Scaled with severity
+  // Formula: (0.40 - actual_wr) * 50 = penalty in basis points
+  // At 25% WR: -15pp, At 35% WR: -5pp, At 40% WR: 0pp
   if (cs.winRate < 0.40) {
-    // At 25% win rate: -15pp
-    // At 35% win rate: -5pp
-    // At 40% win rate: 0pp
     const penalty = (0.40 - cs.winRate) * 50;  // max 15pp
     prob = Math.max(0.01, prob - penalty / 100);  // Convert to fraction
     notes.push(`${category}–warn: ${(cs.winRate*100).toFixed(0)}% WR → –${(penalty).toFixed(0)}pp`);
@@ -217,6 +241,10 @@ function reviewCategoryMemoryImproved(category, features, notes, prob) {
 //   PROFIT_TAKE_LONG_USD=0.25
 
 function shouldTakeProfitNow(bet, market, unrealizedProfit, assetPrice) {
+  // Input validation
+  if (!bet || !market) return false;
+  if (typeof unrealizedProfit !== 'number') return false;
+
   const closetime = new Date(market.close_time);
   const remainingMins = (closetime - Date.now()) / 60000;
   
@@ -315,6 +343,8 @@ function isWeatherTradeable(analysis, opts = {}) {
 //   STREAK_REDUCTION_RATE=0.5    (50% per loss)
 
 function applyStreakAdjustment(baseStake, currentStreak, playType) {
+  if (!baseStake || !playType) return baseStake;
+
   const streakTightens = parseInt(process.env.STREAK_TIGHTEN_AFTER || '3', 10);
   const reductionRate = parseFloat(process.env.STREAK_REDUCTION_RATE || '0.5');
   
@@ -354,6 +384,8 @@ function applyStreakAdjustment(baseStake, currentStreak, playType) {
 // NEW:
 
 function momentumBucket(momentum) {
+  if (typeof momentum !== 'number') return 'flat';
+  
   if (momentum > 0.015) return 'vup';     // Very up
   if (momentum > 0.0005) return 'up';     // Weak up
   if (Math.abs(momentum) <= 0.0005) return 'flat';
@@ -375,6 +407,9 @@ function momentumBucket(momentum) {
 //   VOL_SCALE_FLOOR=0.50       (minimum 50% of stake at 0 volume)
 
 function applyVolumePenalty(stake, marketVolume, marketSpread = null) {
+  // Input validation
+  if (!stake || stake <= 0) return 0;
+
   const volThresh = parseFloat(process.env.VOL_SCALE_THRESHOLD || '100');
   const volFloor = parseFloat(process.env.VOL_SCALE_FLOOR || '0.50');
   
@@ -420,15 +455,15 @@ function patternWinRateBayesian(key) {
   }
   
   // Bayesian: Beta(α, β) where α = wins+1, β = losses+1
-  const alpha = 1 + p.wins;
-  const beta = 1 + (p.trades - p.wins);
+  const alpha = 1 + (p.wins || 0);
+  const beta = 1 + ((p.trades || 0) - (p.wins || 0));
   
   // Expected value of Beta(α, β)
   const bayesianWinRate = alpha / (alpha + beta);
   
   // Blend with observed win rate based on sample size
   const observedWinRate = p.wins / p.trades;
-  const observedConfidence = Math.min(1.0, p.trades / 8);  // Full confidence at 8 samples
+  const observedConfidence = Math.min(1.0, p.trades / BAYESIAN_CONFIDENCE_THRESHOLD);
   
   return bayesianWinRate * (1 - observedConfidence) + observedWinRate * observedConfidence;
 }
@@ -465,7 +500,7 @@ function reportABTestResults() {
     
     const winRate = data.wins / data.trades;
     const avgEdge = data.edges.reduce((a, b) => a + b, 0) / data.trades;
-    const profitPerTrade = data.netProfit / data.trades;
+    const profitPerTrade = data.trades > 0 ? data.netProfit / data.trades : 0;
     
     results[bucket] = {
       trades: data.trades,
