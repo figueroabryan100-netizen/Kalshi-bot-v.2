@@ -1,0 +1,41 @@
+// Standalone Kalshi auth test — isolates signing/key/clock from order logic.
+require('dotenv').config();
+const axios = require('axios');
+const crypto = require('crypto');
+const fs = require('fs');
+
+const KALSHI_API_KEY = process.env.KALSHI_API_KEY;
+const KALSHI_BASE_URL = 'https://external-api.kalshi.com/trade-api/v2';
+const KEY_PATH = process.env.KALSHI_KEY_PATH || './kalshi_key.pem';
+
+let secret = fs.readFileSync(KEY_PATH, 'utf8');
+if (secret.charCodeAt(0) === 0xFEFF) secret = secret.slice(1);
+secret = secret.trim() + '\n';
+
+const method = 'GET';
+const path = '/portfolio/balance';
+const signedPath = '/trade-api/v2' + path;
+const timestamp = Date.now().toString();
+
+const signature = crypto.sign('sha256', Buffer.from(timestamp + method + signedPath), {
+  key: secret,
+  padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+  saltLength: crypto.constants.RSA_PSS_SALTLEN_DIGEST
+}).toString('base64');
+
+console.log('API Key ID :', KALSHI_API_KEY);
+console.log('Key first line:', secret.split('\n')[0]);
+console.log('Local time :', new Date().toISOString(), '(must be within ~30s of real time)\n');
+
+axios({
+  method,
+  url: KALSHI_BASE_URL + path,
+  headers: {
+    'KALSHI-ACCESS-KEY': KALSHI_API_KEY,
+    'KALSHI-ACCESS-SIGNATURE': signature,
+    'KALSHI-ACCESS-TIMESTAMP': timestamp,
+    'Content-Type': 'application/json'
+  }
+})
+  .then(r => console.log('✅ AUTH OK — balance:', JSON.stringify(r.data)))
+  .catch(e => console.log('❌ AUTH FAILED:', JSON.stringify(e.response?.data || e.message)));

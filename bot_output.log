@@ -1,0 +1,32 @@
+📡 Loaded 61 crypto assets: BTC, ETH, SOL, XRP, DOGE, ADA, AERO, AEVO, APT, ARBITRUM, ARB, ATOM, AVALANCHE, AVAX, BASE, BCH, BLAST, BNB, DRIFT, DYDX, EIGEN, ENA, ETHFI, FANTOM, FET, GMX, GNS, HYPERLIQUID, HYPE, INJ, JUPITER, JUP, LINEA, LINK, MATIC, METEORA, MODE, MORPHO, NEAR, OPTIMISM, OP, ORCA, PENDLE, PERP, PHOENIX, POLYGON, RENDER, SCROLL, SEI, SHIB, SUI, SYNTHETIX, TIA, TON, UNI, VELODROME, VERTEX, WLD, W, ZETACH, ZKSYNC
+💓 Health monitor active — heartbeat every 60s, alerts on issues
+✅ Bot initialized. Auto-started scanning.
+🔑 Private key loaded: 1675 chars, first line: "-----BEGIN RSA PRIVATE KEY-----" — looks valid ✅
+
+╔════════════════════════════════════════╗
+║   ALPHA HOUND — v5.1 stable       ║
+║   Crypto (YES/NO) · Weather · Commodities║
+╚════════════════════════════════════════╝
+
+Bankroll: $1.62 | Max/trade: $1.62 | Live: fetching...
+Auto-fire: ON (≤ $1.62) | Cooldown: off
+Commodities: Yahoo Finance (WTI, NatGas, Gold, Silver) ✅
+Quant engine: 15m HIT cycles · refresh 1m · 82 market(s) → KXBTC15M, KXBTC30M, KXBTCH, KXBTCD, KXETH15M, KXETH30M, KXETHH, KXETHD, KXETHMINY, KXETHMAXY, KXETHFLIPETH, KXETHEU, KXETHATHEX, KXSOL15M, KXSOL30M, KXSOLH, KXSOLD26, KXSOLFLIPETH, KXXRP15M, KXXRP30M, KXXRPH, KXXRPATH, KXDOGE15M, KXDOGE30M, KXDOGEH, KXADA15M, KXADA30M, KXAERO15M, KXAEVO15M, KXAPT15M, KXARBITRUM15M, KXARB15M, KXATOM15M, KXAVAX15M, KXAVAX15M, KXBASE15M, KXBCH15M, KXBLAST15M, KXBNB15M, KXDRIFT15M, KXDYDX15M, KXEIGEN15M, KXENA15M, KXETHFI15M, KXFTM15M, KXFET15M, KXGMX15M, KXGNS15M, KXHYPERLIQUID15M, KXHYPE15M, KXINJ15M, KXJUP15M, KXJUP15M, KXLINEA15M, KXLINK15M, KXMATIC15M, KXMETEORA15M, KXMODE15M, KXMORPHO15M, KXNEAR15M, KXOPTIMISM15M, KXOP15M, KXORCA15M, KXPENDLE15M, KXPERP15M, KXPHOENIX15M, KXPOLYGON15M, KXRENDER15M, KXSCROLL15M, KXSEI15M, KXSHIBA15M, KXSUI15M, KXSNX15M, KXTIA15M, KXTON15M, KXUNI15M, KXVELODROME15M, KXVERTEX15M, KXWLD15M, KXW15M, KXZETACH15M, KXZKSYNC15M
+Quant bar: edge 1.0pp · conf 40% · fire≤8 · VOL_MULT 1.28 · min vol $10
+Niche best-only cap 3 (score≥0.8) · Quant-niche cap 4 (score≥1.2)
+Weather: Dallas, New York City, Chicago, Miami, Los Angeles, Denver, Atlanta, Phoenix, Seattle, Boston
+Bet size: FAV $0.75 (58¢–64¢) | UNDER $1.50 (37¢–43¢) | Owner-mode: ON 🧠
+Strategy: FAVORITE (58-64¢, history+intel backed) · UNDERDOG (37-43¢, edge+memory) · reasoning engine 📖
+Price sources: Binance → CoinGecko → CoinLore → CoinPaprika → CryptoCompare → CoinCap (6 free fallbacks)
+Auto-fire: DORMANT (you approve everything) | Lock alerts: ON 🔔 | Auto-radar: ON 📡 | Proposals/window: 8 + 18 scouts
+Weather: multi-source ensemble (NWS + Open-Meteo + wttr.in) · 10 cities · min edge 10.0pp
+Memory depository: ./kalshi_memory.json
+Memory: 0 asset · 1 pattern · 0 category · 0 ledger · 0 notes · 0 lessons
+
+Live WS off (REST/Binance OK). Set ENABLE_WS=true only if your network allows Binance sockets.
+Risk: daily loss 1% · max DD 80% · emergency 50% · unit 10%
+Strategy: FAVORITE + UNDERDOG dual-play · SMA/RSI/BB trend · memory-backed reasoning 📖
+🚀 Final-minutes engine ready — scanning all crypto markets...
+⚠️ Binance geo-blocked (451) — using free fallbacks
+💰 Live Kalshi balance: $17.0100
+🚀 Price scan complete. Engine will enter when final 5-min windows open.

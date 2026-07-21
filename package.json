@@ -1,0 +1,16 @@
+{
+  "name": "kalshi-trading-bot",
+  "version": "1.1.0",
+  "description": "Kelly-sized, approval-gated Kalshi crypto + weather bot with Telegram control. No daily/concurrency limits.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0",
+    "wd": "^1.14.0",
+    "ws": "^8.21.1"
+  }
+}
